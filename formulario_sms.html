@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Enviar SMS con Brevo</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    input, textarea { width: 300px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Enviar SMS - Brevo</h2>
+  <form action="enviarSMS.php" method="POST">
+    <label for="numero">Número de celular (10 dígitos):</label><br>
+    <div>
+      <span style="font-weight:bold;">+52 (México):</span>
+      <input type="text" name="numero" placeholder="5512345678" pattern="\d{12}" required>
+    </div><br>
+
+    <label for="mensaje">Mensaje:</label><br>
+    <textarea name="mensaje" rows="4" maxlength="160" required placeholder="Escribe tu mensaje aquí (máx 160 caracteres)"></textarea><br><br>
+
+    <label for="remitente">Nombre del remitente (máx 11 caracteres):</label><br>
+    <input type="text" name="remitente" value="EducaSMS"><br><br>
+
+    <input type="submit" value="Enviar SMS">
+  </form>
+</body>
+</html>

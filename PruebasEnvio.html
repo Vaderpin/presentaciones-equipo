@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Notificación de Tarea</title>
+</head>
+<body>
+
+    <h2>Formulario de Notificación de Tarea</h2>
+
+    <form action="enviarCorreo.php" method="POST">
+        <label for="nombreTarea">Nombre de la Tarea:</label><br>
+        <input type="text" id="nombreTarea" name="nombreTarea" required><br><br>
+
+        <label for="descripcion">Descripción:</label><br>
+        <textarea id="descripcion" name="descripcion" required></textarea><br><br>
+
+        <label for="correo">Correo del destinatario:</label><br>
+        <input type="email" id="correo" name="correo" required><br><br>
+
+        <input type="submit" value="Enviar Notificación">
+    </form>
+
+</body>
+</html>
