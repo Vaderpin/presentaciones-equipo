@@ -2,23 +2,7 @@
 session_start();
 
 // Credenciales de la base de datos
-//$servername = "fdb1027.biz.nf"; // El servidor
-//$username = "4588094_4588094"; // Tu usuario
-//$password = "Javier993"; // Tu contraseña
-//$dbname = "4588094_4588094"; // Tu base de datos
-
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "4588094_4588094";
-
-// Crear conexión
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Comprobar la conexión
-if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
-}
+require_once 'db.php';
 
 // Obtener los datos del formulario
 $nombre = $_POST['nombre'];
