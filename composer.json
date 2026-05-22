@@ -1,0 +1,12 @@
+{
+    "name": "proyecto/educamente",
+    "description": "Sistema escolar EducaMente con soporte para Google Cloud",
+    "require": {
+        "google/cloud-storage": "^1.42"
+    },
+    "config": {
+        "allow-plugins": {
+            "kylekatarnls/update-helper": true
+        }
+    }
+}
