@@ -6,15 +6,7 @@ if (!isset($_SESSION['usuario']) || $_SESSION['tipo'] !== 'alumno') {
 }
 
 // Conectar a la base de datos
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "4588094_4588094";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
-}
+require_once 'db.php';
 
 // Obtener información del alumno
 $correo = $_SESSION['usuario'];
