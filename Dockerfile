@@ -1,6 +1,6 @@
 FROM php:8.2-apache
 
-# 1. Instalar utilidades necesarias para Composer y la extensión mysqli
+# 1. Instalar utilidades del sistema y extensión mysqli
 RUN apt-get update && apt-get install -y \
     zip \
     unzip \
@@ -8,17 +8,26 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install mysqli \
     && docker-php-ext-enable mysqli
 
-# 2. Descargar e instalar Composer oficial dentro del contenedor
+# 2. Instalar Composer oficial
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 3. Establecer el directorio de trabajo antes de copiar los archivos
+# 3. Directorio de trabajo
 WORKDIR /var/www/html
 
-# 4. Copiar todos los archivos de tu proyecto al contenedor
+# 4. Copiar archivos del proyecto
 COPY . /var/www/html/
 
-# 5. Inicializar Composer de forma automática si no existe un composer.json,
-# o instalar las dependencias si es que ya tienes uno creado.
+# 5. Instalar dependencias de Composer
 RUN if [ ! -f "composer.json" ]; then \
-        echo '{"require": {}}' > composer.json; \
+        echo '{"require": {"google/cloud-storage": "^1.42"}}' > composer.json; \
     fi && composer install --no-dev --optimize-autoloader
+
+# ============================================================
+# SOLUCIÓN DE SEGURIDAD PARA APACHE Y GOOGLE STORAGE
+# ============================================================
+
+# Forzamos a Apache a inyectar la variable de entorno de forma global
+# Así la librería de Google la leerá automáticamente sin usar putenv() en PHP
+RUN echo "SetEnv GOOGLE_APPLICATION_CREDENTIALS /var/www/html/proyecto-para-almacenamiento-ff8cd1f8f073.json" >> /etc/apache2/apache2.conf
+
+EXPOSE 80
