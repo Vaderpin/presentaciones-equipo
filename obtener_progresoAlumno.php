@@ -8,15 +8,7 @@ if (!isset($_SESSION['usuario']) || $_SESSION['tipo'] !== 'maestro') {
 }
 
 // Conectar a la base de datos
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "4588094_4588094";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
-}
+require_once 'db.php';
 
 // Verificar que se ha enviado el ID de la clase
 if (isset($_POST['clase_id'])) {
