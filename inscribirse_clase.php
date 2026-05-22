@@ -4,18 +4,8 @@ ini_set('display_errors', 1);
 header('Content-Type: application/json');
 
 // Credenciales de la base de datos
-$servername = "localhost"; // O la IP de tu servidor de base de datos
-$username = "root"; // Tu usuario de la base de datos
-$password = ""; // Tu contraseña de la base de datos (por defecto en XAMPP es vacío)
-$dbname = "4588094_4588094"; // Nombre de tu base de datos
-
-// Crear conexión
-$conexion = new mysqli($servername, $username, $password, $dbname);
-
-// Verificar la conexión
-if ($conexion->connect_error) {
-    die("Conexión fallida: " . $conexion->connect_error);
-}
+require_once 'db.php';
+$conexion = $conn; // alias para compatibilidad con este archivo
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['codigo'], $_POST['id_alumno'])) {
     $codigo_clase = trim($_POST['codigo']);  // Corregido el nombre de la columna
