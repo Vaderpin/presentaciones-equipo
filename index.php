@@ -157,7 +157,6 @@
             text-decoration: underline;
         }
         
-        /* Toast notification */
         #toast {
             position: fixed;
             bottom: 30px;
@@ -209,7 +208,6 @@
             font-size: 12px;
         }
         
-        /* Añade efecto de onda al hacer clic en el botón */
         button {
             position: relative;
             overflow: hidden;
@@ -244,7 +242,6 @@
             animation: ripple 1s ease-out;
         }
         
-        /* Modo oscuro si el sistema lo tiene activado */
         @media (prefers-color-scheme: dark) {
             body {
                 background: linear-gradient(135deg, #1a2a3a, #0f1923);
@@ -296,7 +293,6 @@
             
             <h2>Iniciar Sesión</h2>
             
-            <!-- Formulario de inicio de sesión -->
             <form action="consultaUsuario.php" method="POST" id="loginForm">
                 <div class="input-group">
                     <input type="text" name="usuario" id="usuario" placeholder="Correo electrónico" required autocomplete="email">
@@ -325,7 +321,6 @@
         </div>
     </div>
 
-    <!-- Toast para notificaciones -->
     <div id="toast"></div>
 
     <script>
@@ -337,15 +332,8 @@
             this.classList.toggle('fa-eye');
             this.classList.toggle('fa-eye-slash');
         });
-        
-        // Prevenir múltiples envíos del formulario
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            const submitBtn = document.getElementById('loginBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando...';
-        });
 
-        // Función para mostrar notificaciones toast mejorada
+        // Función para mostrar notificaciones toast
         function showToast(message, type = 'error') {
             const toast = document.getElementById("toast");
             const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
@@ -353,13 +341,12 @@
             toast.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
             toast.className = 'show ' + type;
             
-            // Ocultar la notificación después de 5 segundos
             setTimeout(function() {
                 toast.className = toast.className.replace("show", "");
             }, 5000);
         }
         
-        // Mostrar la notificación si hay un mensaje en la sesión
+        // Mostrar la notificación si hay un mensaje en la sesión de PHP
         <?php if (isset($_SESSION['error'])): ?>
             showToast("<?php echo htmlspecialchars($_SESSION['error']); ?>", "error");
             <?php unset($_SESSION['error']); ?>
@@ -370,12 +357,13 @@
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
         
-        // Añadir validación de formulario
+        // CORRECCIÓN: Unificación de validación y animación en un único evento Submit
         document.getElementById('loginForm').addEventListener('submit', function(event) {
             const email = document.getElementById('usuario').value.trim();
             const password = document.getElementById('contrasena').value;
+            const submitBtn = document.getElementById('loginBtn');
             
-            // Validación básica del correo electrónico
+            // 1. Validación del formato de correo electrónico
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 event.preventDefault();
@@ -383,37 +371,17 @@
                 return false;
             }
             
-            // Validación básica de la contraseña
+            // 2. Validación de la longitud de la contraseña
             if (password.length < 6) {
                 event.preventDefault();
                 showToast("La contraseña debe tener al menos 6 caracteres");
                 return false;
             }
+
+            // 3. Si pasó las validaciones, cambiamos el diseño visual del botón justo antes del envío
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando...';
+            // NOTA: No añadimos submitBtn.disabled = true; aquí para evitar que algunos navegadores cancelen el POST por seguridad.
         });
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
