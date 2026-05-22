@@ -4,15 +4,16 @@
 //  Cambia los 4 valores de abajo con los datos de tu hosting
 // ============================================================
 
-// Configuración de conexión a MySQL
-$servername = "fdb1031.biz.nf";
-$username = "4416457_wpressc04c61dc";
-$password = "Javier993";
-$dbname = "4416457_wpressc04c61dc";
+// Configuración de conexión a MySQL (Clever Cloud)
+$servername = "bcaccxkcxwvo7htc3zil-mysql.services.clever-cloud.com";
+$username = "u7riqhzj2o05vqwi";
+$password = "0pKje6NOkuxdzIJ6Dv3r";
+$dbname = "bcaccxkcxwvo7htc3zil";
+$port = 3306; // Puerto requerido para conexiones externas
 
 
-// Crear conexión
-$conn = new mysqli($servername, $username, $password, $dbname);
+// Crear conexión especificando el puerto
+$conn = new mysqli($servername, $username, $password, $dbname, $port);
 
 // Configurar charset UTF-8
 $conn->set_charset("utf8mb4");
