@@ -1,14 +1,28 @@
 <?php
 session_start();
-require 'db.php'; // Asegúrate de que este archivo conecta correctamente a la base de datos
+require 'db.php';
 
-if (!isset($_SESSION['id']) || $_SESSION['tipo'] !== 'alumno') {
+// CORRECCIÓN: Verificar sesión igual que el dashboard
+if (!isset($_SESSION['usuario']) || $_SESSION['tipo'] !== 'alumno') {
     $_SESSION['error'] = "Debes iniciar sesión como alumno para ver esta página.";
     header("Location: index.php");
     exit();
 }
 
-$id_alumno = $_SESSION['id'];
+// CORRECCIÓN: Obtener id_alumno desde la BD usando el correo de sesión
+$correo = $_SESSION['usuario'];
+$stmtUser = $conn->prepare("SELECT id FROM usuarios WHERE correo = ? AND tipo = 'alumno'");
+$stmtUser->bind_param("s", $correo);
+$stmtUser->execute();
+$resUser = $stmtUser->get_result()->fetch_assoc();
+
+if (!$resUser) {
+    session_destroy();
+    header("Location: index.php");
+    exit();
+}
+
+$id_alumno = $resUser['id']; // ✅ ID correcto
 
 // Verificamos si se recibe un ID de tarea
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -17,7 +31,7 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     exit();
 }
 
-$id_tarea = intval($_GET['id']); // Convertimos el ID a número entero
+$id_tarea = intval($_GET['id']);
 
 // Obtener información de la tarea
 $stmt = $conn->prepare("SELECT t.titulo, t.descripcion, t.fecha_entrega, c.nombre AS nombre_clase, c.id AS id_clase 
@@ -36,7 +50,8 @@ if (!$tarea) {
 }
 
 // Verificar si el alumno ya entregó la tarea
-$stmt_entrega = $conn->prepare("SELECT archivo_entrega, fecha_entrega, calificacion, comentarios 
+// CORRECCIÓN: usar 'entregado_en' que es el nombre real de la columna en la BD
+$stmt_entrega = $conn->prepare("SELECT archivo_entrega, entregado_en AS fecha_entrega, calificacion, comentarios 
                                 FROM entregas 
                                 WHERE id_tarea = ? AND id_alumno = ?");
 $stmt_entrega->bind_param("ii", $id_tarea, $id_alumno);
@@ -49,7 +64,7 @@ $fecha_entrega = new DateTime($tarea['fecha_entrega']);
 $hoy = new DateTime();
 $es_tardio = $fecha_entrega < $hoy;
 
-// Formatear fecha de entrega de la tarea para mostrarla
+// Formatear fecha de entrega de la tarea
 $fecha_formateada = $fecha_entrega->format('d/m/Y h:i A');
 
 // Formatear fecha de entrega del alumno (si existe)
@@ -57,8 +72,6 @@ $fecha_entrega_alumno = null;
 if ($entrega && $entrega['fecha_entrega']) {
     $fecha_entrega_alumno = new DateTime($entrega['fecha_entrega']);
     $fecha_alumno_formateada = $fecha_entrega_alumno->format('d/m/Y h:i A');
-    
-    // Verificar si la entrega fue tardía
     $entrega_tardia = $fecha_entrega_alumno > $fecha_entrega;
 }
 ?>
@@ -98,7 +111,6 @@ if ($entrega && $entrega['fecha_entrega']) {
             background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
         }
         
-        /* Sidebar mejorada */
         .sidebar {
             width: 280px;
             background: var(--dark-color);
@@ -109,26 +121,6 @@ if ($entrega && $entrega['fecha_entrega']) {
             display: flex;
             flex-direction: column;
             z-index: 10;
-        }
-        
-        .sidebar h2 {
-            margin-bottom: 30px;
-            text-align: center;
-            font-size: 24px;
-            position: relative;
-            padding-bottom: 15px;
-        }
-        
-        .sidebar h2:after {
-            content: '';
-            position: absolute;
-            width: 50px;
-            height: 3px;
-            background: var(--primary-color);
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 10px;
         }
         
         .sidebar button {
@@ -161,11 +153,6 @@ if ($entrega && $entrega['fecha_entrega']) {
             box-shadow: var(--shadow);
         }
         
-        .sidebar button.active {
-            background: var(--primary-color);
-            color: white;
-        }
-        
         .sidebar .logo {
             display: flex;
             flex-direction: column;
@@ -185,11 +172,8 @@ if ($entrega && $entrega['fecha_entrega']) {
             font-size: 14px;
         }
         
-        .spacer {
-            flex-grow: 1;
-        }
+        .spacer { flex-grow: 1; }
         
-        /* Content area */
         .content {
             flex-grow: 1;
             padding: 0;
@@ -229,9 +213,7 @@ if ($entrega && $entrega['fecha_entrega']) {
             color: #666;
         }
         
-        .header .clase-info i {
-            color: var(--primary-color);
-        }
+        .header .clase-info i { color: var(--primary-color); }
         
         .task-status {
             display: flex;
@@ -242,38 +224,17 @@ if ($entrega && $entrega['fecha_entrega']) {
             font-size: 14px;
         }
         
-        .task-status i {
-            margin-right: 8px;
-        }
+        .task-status i { margin-right: 8px; }
+        .status-completed { background-color: rgba(46, 204, 113, 0.15); color: var(--success-color); }
+        .status-pending   { background-color: rgba(52, 152, 219, 0.15); color: var(--primary-color); }
+        .status-overdue   { background-color: rgba(231, 76, 60, 0.15);  color: var(--error-color); }
         
-        .status-completed {
-            background-color: rgba(46, 204, 113, 0.15);
-            color: var(--success-color);
-        }
-        
-        .status-pending {
-            background-color: rgba(52, 152, 219, 0.15);
-            color: var(--primary-color);
-        }
-        
-        .status-late {
-            background-color: rgba(230, 126, 34, 0.15);
-            color: var(--warning-color);
-        }
-        
-        .status-overdue {
-            background-color: rgba(231, 76, 60, 0.15);
-            color: var(--error-color);
-        }
-        
-        /* Contenido principal */
         .main-content {
             padding: 30px;
             overflow-y: auto;
             flex-grow: 1;
         }
         
-        /* Navegación */
         .navigation-buttons {
             display: flex;
             gap: 15px;
@@ -301,11 +262,8 @@ if ($entrega && $entrega['fecha_entrega']) {
             box-shadow: var(--shadow);
         }
         
-        .btn-nav i {
-            margin-right: 8px;
-        }
+        .btn-nav i { margin-right: 8px; }
         
-        /* Tarjetas de contenido */
         .card {
             background: white;
             border-radius: var(--radius);
@@ -335,10 +293,7 @@ if ($entrega && $entrega['fecha_entrega']) {
             color: var(--dark-color);
         }
         
-        .info-row {
-            display: flex;
-            margin-bottom: 15px;
-        }
+        .info-row { display: flex; margin-bottom: 15px; }
         
         .info-label {
             font-weight: 600;
@@ -355,22 +310,9 @@ if ($entrega && $entrega['fecha_entrega']) {
             font-size: 16px;
         }
         
-        .info-value {
-            color: #555;
-            flex-grow: 1;
-            line-height: 1.5;
-        }
+        .info-value { color: #555; flex-grow: 1; line-height: 1.5; }
+        .deadline-overdue { color: var(--error-color); font-weight: 500; }
         
-        .deadline-overdue {
-            color: var(--error-color);
-            font-weight: 500;
-        }
-        
-        .deadline-overdue i {
-            color: var(--error-color);
-        }
-        
-        /* Descripción de tarea */
         .task-description {
             background: rgba(52, 152, 219, 0.05);
             padding: 20px;
@@ -380,28 +322,6 @@ if ($entrega && $entrega['fecha_entrega']) {
             line-height: 1.6;
         }
         
-        /* Estado de entrega */
-        .submission-status {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .submission-status h3 {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--dark-color);
-            display: flex;
-            align-items: center;
-        }
-        
-        .submission-status h3 i {
-            margin-right: 10px;
-            color: var(--primary-color);
-        }
-        
-        /* Archivo de entrega */
         .file-card {
             background: var(--light-color);
             padding: 15px;
@@ -411,26 +331,10 @@ if ($entrega && $entrega['fecha_entrega']) {
             align-items: center;
         }
         
-        .file-icon {
-            font-size: 24px;
-            color: var(--primary-color);
-            margin-right: 15px;
-        }
-        
-        .file-info {
-            flex-grow: 1;
-        }
-        
-        .file-name {
-            font-weight: 600;
-            color: var(--dark-color);
-            margin-bottom: 5px;
-        }
-        
-        .file-meta {
-            font-size: 13px;
-            color: #666;
-        }
+        .file-icon { font-size: 24px; color: var(--primary-color); margin-right: 15px; }
+        .file-info { flex-grow: 1; }
+        .file-name { font-weight: 600; color: var(--dark-color); margin-bottom: 5px; }
+        .file-meta { font-size: 13px; color: #666; }
         
         .file-download {
             background: var(--primary-color);
@@ -451,38 +355,14 @@ if ($entrega && $entrega['fecha_entrega']) {
             box-shadow: var(--shadow);
         }
         
-        .file-download i {
-            margin-right: 8px;
-        }
+        .file-download i { margin-right: 8px; }
         
-        /* Calificación */
-        .grade {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--success-color);
-            margin: 10px 0;
-        }
+        .grade { font-size: 24px; font-weight: 700; color: var(--success-color); margin: 10px 0; }
+        .grade-pending { font-size: 16px; color: #888; font-style: italic; }
         
-        .grade-pending {
-            font-size: 16px;
-            color: #888;
-            font-style: italic;
-        }
+        .comments { background: var(--light-color); padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .comments-empty { font-style: italic; color: #888; }
         
-        /* Comentarios */
-        .comments {
-            background: var(--light-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-        }
-        
-        .comments-empty {
-            font-style: italic;
-            color: #888;
-        }
-        
-        /* Formulario de entrega */
         .submission-form {
             background: rgba(52, 152, 219, 0.05);
             border: 2px dashed var(--primary-color);
@@ -493,10 +373,7 @@ if ($entrega && $entrega['fecha_entrega']) {
             transition: var(--transition);
         }
         
-        .submission-form:hover {
-            box-shadow: var(--shadow);
-            border-color: var(--primary-hover);
-        }
+        .submission-form:hover { box-shadow: var(--shadow); border-color: var(--primary-hover); }
         
         .form-title {
             font-size: 20px;
@@ -508,22 +385,10 @@ if ($entrega && $entrega['fecha_entrega']) {
             justify-content: center;
         }
         
-        .form-title i {
-            margin-right: 10px;
-            font-size: 24px;
-            color: var(--primary-color);
-        }
+        .form-title i { margin-right: 10px; font-size: 24px; color: var(--primary-color); }
         
-        .file-upload {
-            margin-bottom: 25px;
-        }
-        
-        .file-upload-label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: var(--dark-color);
-        }
+        .file-upload { margin-bottom: 25px; }
+        .file-upload-label { display: block; margin-bottom: 10px; font-weight: 600; color: var(--dark-color); }
         
         .file-upload-input {
             width: 100%;
@@ -541,11 +406,7 @@ if ($entrega && $entrega['fecha_entrega']) {
             outline: none;
         }
         
-        .file-optional {
-            margin-top: 5px;
-            font-size: 13px;
-            color: #888;
-        }
+        .file-optional { margin-top: 5px; font-size: 13px; color: #888; }
         
         .btn-submit {
             display: inline-flex;
@@ -567,9 +428,7 @@ if ($entrega && $entrega['fecha_entrega']) {
             box-shadow: var(--shadow);
         }
         
-        .btn-submit i {
-            margin-right: 8px;
-        }
+        .btn-submit i { margin-right: 8px; }
         
         .late-submission-warning {
             margin-top: 15px;
@@ -584,12 +443,8 @@ if ($entrega && $entrega['fecha_entrega']) {
             align-items: center;
         }
         
-        .late-submission-warning i {
-            margin-right: 10px;
-            font-size: 18px;
-        }
+        .late-submission-warning i { margin-right: 10px; font-size: 18px; }
         
-        /* Toast para notificaciones */
         #toast {
             position: fixed;
             bottom: 30px;
@@ -604,76 +459,30 @@ if ($entrega && $entrega['fecha_entrega']) {
             min-width: 280px;
         }
         
-        #toast.show {
-            display: block;
-            animation: fadeInRight 0.5s ease forwards;
-        }
-        
-        #toast.error {
-            background: var(--error-color);
-        }
+        #toast.show { display: block; animation: fadeInRight 0.5s ease forwards; }
+        #toast.error { background: var(--error-color); }
         
         @keyframes fadeInRight {
             from { opacity: 0; transform: translateX(50px); }
-            to { opacity: 1; transform: translateX(0); }
+            to   { opacity: 1; transform: translateX(0); }
         }
         
-        /* Animaciones */
-        .fade-in {
-            animation: fadeIn 0.5s ease;
-        }
+        .fade-in { animation: fadeIn 0.5s ease; }
         
         @keyframes fadeIn {
             from { opacity: 0; }
-            to { opacity: 1; }
+            to   { opacity: 1; }
         }
         
-        /* Responsive */
         @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-                padding: 15px;
-            }
-            
-            .content {
-                width: 100%;
-            }
-            
-            .header-content {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-            
-            .info-row {
-                flex-direction: column;
-            }
-            
-            .info-label {
-                width: 100%;
-                margin-bottom: 5px;
-            }
-            
-            .submission-status {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-            
-            .file-card {
-                flex-direction: column;
-                text-align: center;
-                gap: 15px;
-            }
-            
-            .file-download {
-                width: 100%;
-                justify-content: center;
-            }
+            body { flex-direction: column; }
+            .sidebar { width: 100%; padding: 15px; }
+            .content { width: 100%; }
+            .header-content { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .info-row { flex-direction: column; }
+            .info-label { width: 100%; margin-bottom: 5px; }
+            .file-card { flex-direction: column; text-align: center; gap: 15px; }
+            .file-download { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -683,10 +492,16 @@ if ($entrega && $entrega['fecha_entrega']) {
             <h1>EducaMente</h1>
             <span>Panel del Alumno</span>
         </div>
-        <button onclick="window.location.href='alumno_dashboard.php'"><i class="fas fa-home"></i> Inicio</button>
-        <button onclick="window.location.href='ver_claseAlumno.php?id=<?php echo $tarea['id_clase']; ?>'"><i class="fas fa-arrow-left"></i> Volver a la Clase</button>
+        <button onclick="window.location.href='alumno_dashboard.php'">
+            <i class="fas fa-home"></i> Inicio
+        </button>
+        <button onclick="window.location.href='ver_claseAlumno.php?id=<?php echo $tarea['id_clase']; ?>'">
+            <i class="fas fa-arrow-left"></i> Volver a la Clase
+        </button>
         <div class="spacer"></div>
-        <button onclick="window.location.href='index.php'"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+        <button onclick="window.location.href='index.php'">
+            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+        </button>
     </div>
 
     <div class="content">
@@ -721,6 +536,7 @@ if ($entrega && $entrega['fecha_entrega']) {
                 </a>
             </div>
 
+            <!-- Detalles de la tarea -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-file-alt"></i>
@@ -731,7 +547,7 @@ if ($entrega && $entrega['fecha_entrega']) {
                     <div class="info-label"><i class="fas fa-calendar-alt"></i> Fecha de entrega:</div>
                     <div class="info-value <?php echo $es_tardio ? 'deadline-overdue' : ''; ?>">
                         <?php if ($es_tardio): ?>
-                            <i class="fas fa-exclamation-triangle"></i> 
+                            <i class="fas fa-exclamation-triangle"></i>
                             ¡Plazo vencido! Fecha límite: <?php echo $fecha_formateada; ?>
                         <?php else: ?>
                             <?php echo $fecha_formateada; ?>
@@ -745,6 +561,7 @@ if ($entrega && $entrega['fecha_entrega']) {
             </div>
 
             <?php if ($entrega): ?>
+            <!-- Ya entregó -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-check-circle"></i>
@@ -755,7 +572,9 @@ if ($entrega && $entrega['fecha_entrega']) {
                     <div class="info-label"><i class="fas fa-calendar-check"></i> Fecha de entrega:</div>
                     <div class="info-value">
                         <?php if (isset($entrega_tardia) && $entrega_tardia): ?>
-                            <span style="color: var(--warning-color);"><i class="fas fa-exclamation-triangle"></i> Entrega tardía: </span>
+                            <span style="color: var(--warning-color);">
+                                <i class="fas fa-exclamation-triangle"></i> Entrega tardía:
+                            </span>
                         <?php endif; ?>
                         <?php echo $fecha_alumno_formateada; ?>
                     </div>
@@ -766,14 +585,13 @@ if ($entrega && $entrega['fecha_entrega']) {
                     <div class="info-label"><i class="fas fa-file"></i> Archivo enviado:</div>
                     <div class="info-value">
                         <div class="file-card">
-                            <div class="file-icon">
-                                <i class="fas fa-file-alt"></i>
-                            </div>
+                            <div class="file-icon"><i class="fas fa-file-alt"></i></div>
                             <div class="file-info">
                                 <div class="file-name"><?php echo basename($entrega['archivo_entrega']); ?></div>
                                 <div class="file-meta">Haz clic en "Descargar" para ver tu archivo entregado</div>
                             </div>
-                            <a href="descargar.php?archivo=<?php echo urlencode($entrega['archivo_entrega']); ?>" class="file-download" target="_blank">
+                            <a href="descargar.php?archivo=<?php echo urlencode($entrega['archivo_entrega']); ?>" 
+                               class="file-download" target="_blank">
                                 <i class="fas fa-download"></i> Descargar
                             </a>
                         </div>
@@ -803,14 +621,16 @@ if ($entrega && $entrega['fecha_entrega']) {
                     <div class="info-label"><i class="fas fa-comment"></i> Comentarios del profesor:</div>
                     <div class="info-value">
                         <div class="comments">
-                            <?php echo empty($entrega['comentarios']) ? 
-                                '<span class="comments-empty">Sin comentarios</span>' : 
-                                nl2br(htmlspecialchars($entrega['comentarios'])); ?>
+                            <?php echo empty($entrega['comentarios']) 
+                                ? '<span class="comments-empty">Sin comentarios</span>' 
+                                : nl2br(htmlspecialchars($entrega['comentarios'])); ?>
                         </div>
                     </div>
                 </div>
             </div>
+
             <?php else: ?>
+            <!-- Aún no ha entregado -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-upload"></i>
@@ -855,46 +675,36 @@ if ($entrega && $entrega['fecha_entrega']) {
         </div>
     </div>
 
-    <!-- Toast para notificaciones -->
     <div id="toast"></div>
 
     <script>
-        // Función para mostrar mensajes toast
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
             toast.className = 'show ' + type;
-            
             setTimeout(function() {
                 toast.className = toast.className.replace('show', '');
             }, 5000);
         }
         
-        // Validación básica del formulario
         document.addEventListener('DOMContentLoaded', function() {
             const formEntrega = document.getElementById('formEntrega');
             
             if (formEntrega) {
                 formEntrega.addEventListener('submit', function(e) {
-                    // Aquí podemos añadir validación si es necesario
-                    // Por ejemplo, validar el tamaño del archivo, formato, etc.
-                    
-                    // Opcional: Confirmación de entrega tardía
                     <?php if ($es_tardio): ?>
                     if (!confirm('Estás realizando una entrega fuera de plazo. ¿Estás seguro de que deseas continuar?')) {
                         e.preventDefault();
                         return false;
                     }
                     <?php endif; ?>
-                    
                     showToast('Enviando tarea...', 'success');
                 });
             }
             
-            // Mostrar mensajes de éxito o error si existen
-            <?php if (isset($_SESSION['success'])): ?>
-                showToast("<?php echo htmlspecialchars($_SESSION['success']); ?>", "success");
-                <?php unset($_SESSION['success']); ?>
+            <?php if (isset($_SESSION['exito'])): ?>
+                showToast("<?php echo htmlspecialchars($_SESSION['exito']); ?>", "success");
+                <?php unset($_SESSION['exito']); ?>
             <?php endif; ?>
             
             <?php if (isset($_SESSION['error'])): ?>
