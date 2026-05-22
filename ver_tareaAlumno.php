@@ -689,24 +689,25 @@ if ($entrega && $entrega['fecha_entrega']) {
         
         document.addEventListener('DOMContentLoaded', function() {
             const formEntrega = document.getElementById('formEntrega');
-            
+            const esTardio = <?php echo $es_tardio ? 'true' : 'false'; ?>;
+
             if (formEntrega) {
                 formEntrega.addEventListener('submit', function(e) {
-                    <?php if ($es_tardio): ?>
-                    if (!confirm('Estás realizando una entrega fuera de plazo. ¿Estás seguro de que deseas continuar?')) {
-                        e.preventDefault();
-                        return false;
+                    if (esTardio) {
+                        if (!confirm('Estás realizando una entrega fuera de plazo. ¿Estás seguro de que deseas continuar?')) {
+                            e.preventDefault();
+                            return false;
+                        }
                     }
-                    <?php endif; ?>
                     showToast('Enviando tarea...', 'success');
                 });
             }
-            
+
             <?php if (isset($_SESSION['exito'])): ?>
                 showToast("<?php echo htmlspecialchars($_SESSION['exito']); ?>", "success");
                 <?php unset($_SESSION['exito']); ?>
             <?php endif; ?>
-            
+
             <?php if (isset($_SESSION['error'])): ?>
                 showToast("<?php echo htmlspecialchars($_SESSION['error']); ?>", "error");
                 <?php unset($_SESSION['error']); ?>
