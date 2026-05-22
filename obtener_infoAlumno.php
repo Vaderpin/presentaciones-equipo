@@ -9,15 +9,7 @@ $alumno_id = $_POST['alumno_id'];
 $clase_id = $_POST['clase_id']; // Tomar el ID de la clase también
 
 // Conectar a la base de datos
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "4588094_4588094";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    die("Conexión fallida: " . $conn->connect_error);
-}
+require_once 'db.php';
 
 // Obtener información del alumno (Nombre y Correo)
 $sql = "SELECT u.nombre, u.correo, 
