@@ -4,10 +4,12 @@
 //  Cambia los 4 valores de abajo con los datos de tu hosting
 // ============================================================
 
-$servername = "fdb1027.biz.nf";   // Host del servidor MySQL remoto
-$username   = "4588094_4588094";   // Usuario de la base de datos
-$password   = "TU_CONTRASEÑA";     // Contraseña del usuario
-$dbname     = "4588094_4588094";   // Nombre de la base de datos
+// Configuración de conexión a MySQL
+$servername = "fdb1031.biz.nf";
+$username = "4416457_wpressc04c61dc";
+$password = "Javier993";
+$dbname = "4416457_wpressc04c61dc";
+
 
 // Crear conexión
 $conn = new mysqli($servername, $username, $password, $dbname);
