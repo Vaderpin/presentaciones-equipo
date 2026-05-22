@@ -14,7 +14,7 @@ $sql = "SELECT id, nombre FROM usuarios WHERE correo = ? AND tipo = 'alumno'";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $correo);
 $stmt->execute();
-$result = $conn->get_result(); // Cambiado a $conn->get_result() para consistencia en Render
+$result = $stmt->get_result();
 $usuario = $result->fetch_assoc();
 
 if (!$usuario) {
@@ -54,10 +54,6 @@ $tareas = $resultTareas->fetch_all(MYSQLI_ASSOC);
 $conn->close();
 ?>
 
-<script>
-    const tareas = <?php echo json_encode($tareas); ?>;
-</script>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -94,6 +90,7 @@ $conn->close();
             background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
         }
         
+        /* Sidebar */
         .sidebar {
             width: 280px;
             background: var(--dark-color);
@@ -184,6 +181,7 @@ $conn->close();
             flex-grow: 1;
         }
         
+        /* Content area */
         .content {
             flex-grow: 1;
             padding: 0;
@@ -234,6 +232,7 @@ $conn->close();
             font-size: 16px;
         }
         
+        /* Main content */
         #mainContent {
             padding: 30px;
             overflow-y: auto;
@@ -253,7 +252,8 @@ $conn->close();
             color: var(--primary-color);
         }
         
-        .grupo-container, .tareas-container {
+        /* Tarjetas de clases */
+        .grupo-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
@@ -299,6 +299,14 @@ $conn->close();
         
         .grupo-item a:hover {
             color: var(--primary-color);
+        }
+        
+        /* Tarjetas de tareas */
+        .tareas-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
         }
         
         .tarea-card {
@@ -349,7 +357,9 @@ $conn->close();
             align-items: center;
         }
         
-        .tarea-clase i { margin-right: 8px; }
+        .tarea-clase i {
+            margin-right: 8px;
+        }
         
         .tarea-fecha {
             font-size: 13px;
@@ -385,6 +395,7 @@ $conn->close();
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
+        /* Botón para inscribirse */
         .btn-crear {
             display: inline-flex;
             align-items: center;
@@ -400,13 +411,17 @@ $conn->close();
             box-shadow: var(--shadow);
         }
         
-        .btn-crear i { margin-right: 10px; }
+        .btn-crear i {
+            margin-right: 10px;
+        }
+        
         .btn-crear:hover {
             background: var(--primary-hover);
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
         
+        /* Formulario de inscripción */
         .form-container {
             background: white;
             padding: 25px;
@@ -475,6 +490,15 @@ $conn->close();
             box-shadow: var(--shadow);
         }
         
+        /* Separador */
+        hr {
+            margin: 40px 0;
+            border: none;
+            height: 1px;
+            background: rgba(0,0,0,0.1);
+        }
+        
+        /* Notificaciones toast */
         #toast {
             position: fixed;
             bottom: 30px;
@@ -493,19 +517,20 @@ $conn->close();
             animation: fadeInRight 0.5s ease forwards;
         }
         
-        #toast.error { background: var(--error-color); }
-        #toast.success { background: var(--success-color); }
+        #toast.error {
+            background: var(--error-color);
+        }
+        
+        #toast.success {
+            background: var(--success-color);
+        }
         
         @keyframes fadeInRight {
             from { opacity: 0; transform: translateX(50px); }
             to { opacity: 1; transform: translateX(0); }
         }
         
-        .stats-card {
-            position: relative;
-            padding-left: 20px;
-        }
-        
+        /* Estilos para las secciones */
         .section-header {
             color: var(--dark-color);
             font-size: 22px;
@@ -520,18 +545,48 @@ $conn->close();
             font-size: 24px;
         }
         
+        /* Responsive */
         @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar { width: 100%; padding: 15px; }
-            .content { width: 100%; }
-            .grupo-container, .tareas-container { grid-template-columns: 1fr; }
+            body {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                padding: 15px;
+            }
+            
+            .content {
+                width: 100%;
+            }
+            
+            .grupo-container, .tareas-container {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .fade-in { animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .mb-20 { margin-bottom: 20px; }
-        .mt-20 { margin-top: 20px; }
-        .text-center { text-align: center; }
+        /* Animaciones */
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Clases de utilidad */
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+        
+        .mt-20 {
+            margin-top: 20px;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
     </style>
     <script>
         window.onload = function () {
@@ -566,7 +621,8 @@ $conn->close();
         </div>
         
         <div id="mainContent" class="fade-in">
-            </div>
+            <!-- Contenido dinámico se cargará aquí -->
+        </div>
     </div>
 
     <div id="toast"></div>
@@ -595,13 +651,14 @@ $conn->close();
 
         function mostrarInicio() {
             setActiveButton(btnInicio);
+
+            const clases = <?php echo json_encode($clases); ?>;
+            const tareas = <?php echo json_encode($tareas); ?>;
+
             let content = `
                 <h3><i class="fas fa-chart-line"></i> Resumen de Progreso</h3>
                 <p class="mb-20">Bienvenido de vuelta. Aquí puedes ver tu progreso en cada una de tus clases.</p>
                 <div class="grupo-container">`;
-
-            const clases = <?php echo json_encode($clases); ?>;
-            const tareas = <?php echo json_encode($tareas); ?>;
 
             clases.forEach((clase, index) => {
                 let total = 0;
@@ -618,7 +675,7 @@ $conn->close();
                 let porcentaje = total > 0 ? Math.round((entregadas / total) * 100) : 0;
                 
                 content += `
-                <div class='grupo-item stats-card' style="cursor:pointer;" onclick="window.location.href='ver_claseAlumno.php?id=${clase.id}'">
+                <div class='grupo-item' style="cursor:pointer;" onclick="window.location.href='ver_claseAlumno.php?id=${clase.id}'">
                     <div style="display: flex; gap: 20px; align-items: center;">
                         <canvas id='${chartId}' width='150' height='150'></canvas>
                         <div style="flex: 1;">
@@ -627,7 +684,7 @@ $conn->close();
                                 <i class="fas fa-check-circle" style="color: var(--success-color);"></i> 
                                 <strong>${entregadas}</strong> de <strong>${total}</strong> tareas entregadas
                             </p>
-                            <p style="font-size: 14px; margin-bottom: 15px;">
+                            <p style="font-size: 14px;">
                                 <i class="fas fa-percentage" style="color: var(--primary-color);"></i> 
                                 Progreso: <strong>${porcentaje}%</strong>
                             </p>
@@ -651,6 +708,7 @@ $conn->close();
             document.getElementById("mainContent").innerHTML = content;
             document.getElementById("mainContent").className = "fade-in";
 
+            // Generar las gráficas
             clases.forEach((clase, index) => {
                 let total = 0;
                 let entregadas = 0;
@@ -686,9 +744,11 @@ $conn->close();
             let content = `
                 <h3><i class="fas fa-users"></i> Mis Clases</h3>
                 <p class="mb-20">Estas son las clases en las que estás inscrito actualmente.</p>
+                
                 <button class='btn-crear' onclick='mostrarFormularioInscripcion()'>
                     <i class="fas fa-plus-circle"></i> Inscribirme a nueva clase
                 </button>
+                
                 <div class='grupo-container'>`;
 
             <?php if (count($clases) > 0): ?>
@@ -714,12 +774,20 @@ $conn->close();
                     </div>`;
             <?php endif; ?>
             
-            content += `</div>
+            content += `</div>`;
+
+            content += `
                 <div class='form-container' id='formInscripcion'>
                     <h4><i class="fas fa-plus-circle"></i> Inscribirme a una nueva clase</h4>
-                    <p style="margin-bottom: 15px; color: #666;">Ingresa el código de la clase que te proporcionó tu profesor.</p>
-                    <input type='text' id='codigoClase' placeholder='Ingresa el código de clase'>
-                    <button onclick='verificarClase()'><i class="fas fa-search"></i> Verificar código</button>
+                    <p style="margin-bottom: 15px; color: #666;">
+                        Ingresa el código de la clase que te proporcionó tu profesor.
+                    </p>
+                    <div style="position: relative;">
+                        <input type='text' id='codigoClase' placeholder='Ingresa el código de clase'>
+                    </div>
+                    <button onclick='verificarClase()'>
+                        <i class="fas fa-search"></i> Verificar código
+                    </button>
                     <div id='infoClase' style="margin-top: 15px;"></div>
                 </div>`;
 
@@ -730,31 +798,48 @@ $conn->close();
         function mostrarTareas() {
             setActiveButton(btnTareas);
             const tareas = <?php echo json_encode($tareas); ?>;
+            
             const pendientes = tareas.filter(t => t.entregada == 0).length;
             const entregadas = tareas.filter(t => t.entregada > 0).length;
             
             let content = `
                 <h3><i class="fas fa-tasks"></i> Mis Tareas</h3>
                 <p class="mb-20">Administra todas tus tareas en un solo lugar. Tienes ${pendientes} tareas pendientes y ${entregadas} entregadas.</p>
-                <div class="section-header"><i class="fas fa-hourglass-half"></i> Tareas Pendientes</div>
+                
+                <div class="section-header">
+                    <i class="fas fa-hourglass-half"></i> Tareas Pendientes
+                </div>
                 <div class='tareas-container'>`;
 
             const tareasPendientes = tareas.filter(t => t.entregada == 0);
+            
             if (tareasPendientes.length > 0) {
-                tareasPendientes.forEach(t => { content += generarCardTarea(t); });
+                tareasPendientes.forEach(t => {
+                    content += generarCardTarea(t);
+                });
             } else {
                 content += `
                     <div class="text-center" style="grid-column: 1/-1; padding: 30px;">
                         <i class="fas fa-check-circle" style="font-size: 48px; color: var(--success-color); margin-bottom: 15px;"></i>
                         <p>¡No tienes tareas pendientes!</p>
+                        <p style="margin-top: 10px;">Mantén el buen trabajo.</p>
                     </div>`;
             }
             
-            content += `</div><div class="section-header"><i class="fas fa-check-circle"></i> Tareas Entregadas</div><div class='tareas-container'>`;
+            content += `
+                </div>
+                
+                <div class="section-header">
+                    <i class="fas fa-check-circle"></i> Tareas Entregadas
+                </div>
+                <div class='tareas-container'>`;
 
             const tareasEntregadas = tareas.filter(t => t.entregada > 0);
+            
             if (tareasEntregadas.length > 0) {
-                tareasEntregadas.forEach(t => { content += generarCardTarea(t); });
+                tareasEntregadas.forEach(t => {
+                    content += generarCardTarea(t);
+                });
             } else {
                 content += `
                     <div class="text-center" style="grid-column: 1/-1; padding: 30px;">
@@ -764,6 +849,7 @@ $conn->close();
             }
             
             content += `</div>`;
+            
             document.getElementById("mainContent").innerHTML = content;
             document.getElementById("mainContent").className = "fade-in";
         }
@@ -771,8 +857,14 @@ $conn->close();
         function generarCardTarea(t) {
             const fecha = new Date(t.fecha_entrega);
             const formattedDate = fecha.toLocaleDateString('es-MX', { 
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
             });
+            
             const isEntregada = t.entregada > 0;
             const statusIcon = isEntregada 
                 ? `<i class="fas fa-check-circle" style="color: var(--success-color);"></i> Entregada` 
@@ -797,8 +889,12 @@ $conn->close();
                 <div class='tarea-card' style="${isEntregada ? 'border-left: 5px solid var(--success-color);' : ''}">
                     <div class='tarea-titulo'>${t.titulo}</div>
                     <div class='tarea-descripcion'>${t.descripcion}</div>
-                    <div class='tarea-clase'><i class="fas fa-book"></i> Clase: ${t.clase_nombre}</div>
-                    <div class='tarea-fecha' style="${fechaEstilo}"><i class="fas fa-calendar-alt"></i> ${fechaTexto}</div>
+                    <div class='tarea-clase'>
+                        <i class="fas fa-book"></i> Clase: ${t.clase_nombre}
+                    </div>
+                    <div class='tarea-fecha' style="${fechaEstilo}">
+                        <i class="fas fa-calendar-alt"></i> ${fechaTexto}
+                    </div>
                     <div style="margin: 10px 0; font-size: 14px;">${statusIcon}</div>
                     <button class='btn-tarea' onclick="window.location.href='ver_tareaAlumno.php?id=${t.id}'">
                         ${isEntregada ? '<i class="fas fa-eye"></i> Ver Entrega' : '<i class="fas fa-upload"></i> Entregar Tarea'}
@@ -818,6 +914,7 @@ $conn->close();
                 showToast('Por favor, ingresa un código de clase.', 'error');
                 return;
             }
+
             const infoClase = document.getElementById('infoClase');
             infoClase.innerHTML = `<div style="text-align: center; padding: 15px;"><i class="fas fa-spinner fa-spin"></i> Verificando código...</div>`;
 
@@ -837,21 +934,27 @@ $conn->close();
                     } else {
                         infoClase.innerHTML = `
                             <div style="background: rgba(231, 76, 60, 0.1); border-radius: 8px; padding: 15px; border-left: 4px solid var(--error-color); animation: fadeIn 0.5s ease;">
-                                <p style="color: var(--error-color);"><i class="fas fa-times-circle"></i> ${data.message}</p>
+                                <p style="color: var(--error-color);">
+                                    <i class="fas fa-times-circle"></i> ${data.message}
+                                </p>
                             </div>`;
                     }
                 })
                 .catch(error => {
                     infoClase.innerHTML = `
                         <div style="background: rgba(231, 76, 60, 0.1); border-radius: 8px; padding: 15px; border-left: 4px solid var(--error-color); animation: fadeIn 0.5s ease;">
-                            <p style="color: var(--error-color);"><i class="fas fa-exclamation-triangle"></i> Error de conexión.</p>
+                            <p style="color: var(--error-color);">
+                                <i class="fas fa-exclamation-triangle"></i> Error de conexión. Inténtalo nuevamente.
+                            </p>
                         </div>`;
+                    console.error("Error en la solicitud:", error);
                 });
         }
 
         function inscribirseClase(codigo) {
             let idAlumno = '<?php echo $usuario["id"]; ?>';
             const infoClase = document.getElementById('infoClase');
+            
             infoClase.innerHTML = `<div style="text-align: center; padding: 15px;"><i class="fas fa-spinner fa-spin"></i> Procesando inscripción...</div>`;
 
             fetch('inscribirse_clase.php', {
@@ -859,17 +962,40 @@ $conn->close();
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: 'codigo=' + encodeURIComponent(codigo) + '&id_alumno=' + encodeURIComponent(idAlumno)
             })
-            .then(response => response.json())
+            .then(response => response.text())
+            .then(text => {
+                console.log("Respuesta del servidor:", text);
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Respuesta no válida del servidor');
+                }
+            })
             .then(data => {
                 if (data.success) {
                     showToast(data.message, 'success');
-                    setTimeout(() => { location.reload(); }, 1500);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
                 } else {
                     showToast(data.message, 'error');
+                    infoClase.innerHTML = `
+                        <div style="background: rgba(231, 76, 60, 0.1); border-radius: 8px; padding: 15px; border-left: 4px solid var(--error-color); animation: fadeIn 0.5s ease;">
+                            <p style="color: var(--error-color);">
+                                <i class="fas fa-times-circle"></i> ${data.message}
+                            </p>
+                        </div>`;
                 }
             })
             .catch(error => {
                 showToast('Error al procesar la inscripción', 'error');
+                infoClase.innerHTML = `
+                    <div style="background: rgba(231, 76, 60, 0.1); border-radius: 8px; padding: 15px; border-left: 4px solid var(--error-color); animation: fadeIn 0.5s ease;">
+                        <p style="color: var(--error-color);">
+                            <i class="fas fa-exclamation-triangle"></i> Error de conexión. Inténtalo nuevamente.
+                        </p>
+                    </div>`;
+                console.error("Error en la solicitud:", error);
             });
         }
     </script>
